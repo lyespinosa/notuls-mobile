@@ -1,8 +1,8 @@
 import { Text } from 'react-native'
 
-const Texto = ({ style, children }) => {
+const Texto = ({ style, children, ...props }) => {
     return (
-        <Text className='text-white' style={style}>{children}</Text>
+        <Text {...props} className='text-white' style={style}>{children}</Text>
     )
 }
 

@@ -1,12 +1,12 @@
 import { createStackNavigator } from '@react-navigation/stack'
 import { NavigationContainer } from '@react-navigation/native'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import Home from './Home'
+import Home from './Home/Home'
 import Container from '../components/Container'
-import Colecciones from './Colecciones'
-import Coleccion from './Coleccion'
-import Compras from './Compras'
-import Ventas from './Ventas'
+import Compras from './Compras/Compras'
+import Ventas from './Ventas/Ventas'
+import CollectionsList from './CollectionsList/CollectionsList'
+import IndividualCollection from './IndividualCollection/IndividualCollection'
 
 
 const Stack = createStackNavigator()
@@ -34,13 +34,19 @@ const StackNavigate = () => {
                             component={Home}
                         />
                         <Stack.Screen
-                            name='Colecciones'
-                            component={Colecciones}
+                            name='CollectionsList'
+                            component={CollectionsList}
+                            options={{
+                                title: 'Colecciones'
+                            }}
                         />
 
                         <Stack.Screen
-                            name='Coleccion'
-                            component={Coleccion}
+                            name='IndividualCollection'
+                            component={IndividualCollection}
+                            options={{
+                                title: 'Colección'
+                            }}
                         />
 
                         <Stack.Screen

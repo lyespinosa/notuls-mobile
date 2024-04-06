@@ -1,11 +1,11 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
 import React from 'react'
 import { ScrollView } from 'react-native-gesture-handler'
-import Texto from '../components/Texto'
+import Texto from '../../components/Texto'
 
-import shirt1 from '../images/shirt2.png'
-import shirt2 from '../images/shirt3.png'
-import shirt3 from '../images/shirt4.png'
+import shirt1 from '../../images/shirt2.png'
+import shirt2 from '../../images/shirt3.png'
+import shirt3 from '../../images/shirt4.png'
 
 const Compras = () => {
     return (

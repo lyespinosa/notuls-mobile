@@ -1,21 +1,65 @@
 import { View, TouchableOpacity, Image } from 'react-native'
-import React, { useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Texto from '../../components/Texto'
 
 import { ScrollView } from 'react-native-gesture-handler'
 import Collection from '../../components/Collection'
-import { collections } from '../../request-test'
 
 import { BottomSheet } from 'react-native-sheet'
 import Input from '../../components/form/Input'
 import Button from '../../components/form/Button'
+import { createNewCollectionRequest, getCollectionsRequest } from '../../service/public.service'
 
 
 
 
 const CollectionsList = ({ navigation }) => {
 
+    const [collections, setCollections] = useState([])
+
+    useEffect(() => {
+        const getCollections = async () => {
+            const collectionsResponse = await getCollectionsRequest();
+            setCollections(collectionsResponse)
+        }
+
+        getCollections()
+     
+    }, [])
+    
+
     const bottomSheet = useRef(null);
+
+    const [newCollection, setNewCollection] = useState({
+        name: '',
+        userId: 1
+    });
+
+    const handleChange = (key, value) => {
+        setNewCollection(prevState => ({
+            ...prevState,
+            [key]: value
+        }));
+    };
+
+    const handleSubmmit = async () => {
+        if (newCollection.name.trim() !== '') {
+            try {
+                await createNewCollectionRequest(newCollection);
+                setCollections(prevCollections => [...prevCollections, newCollection]);
+                setNewCollection({
+                    name: '',
+                    userId: 1
+                });
+                bottomSheet.current.hide();
+                
+            } catch (error) {
+                alert('Error al guardar, intente más tarde')
+            }
+        } else {
+            bottomSheet.current.hide();
+        }
+    };
 
     return (
         <ScrollView className='bg-base-deep flex-1  '>
@@ -25,8 +69,8 @@ const CollectionsList = ({ navigation }) => {
                 backdropBackgroundColor='#000a' sheetStyle={{ backgroundColor: '#1F2228' }}
             >
                 <Texto className='text-2xl font-semibold  text-zinc-400'>Nombre de la nueva colección</Texto>
-                <Input className='w-72' />
-                <Button text='Crear colección' className='w-[330px]' />
+                <Input className='w-72' onChange={value => handleChange('name', value)} value={newCollection.name} />
+                <Button onPress={handleSubmmit} text='Crear colección' className='w-[330px]' />
             </BottomSheet>
 
             <View className='bg-base-deep flex-1 px-2 pt-8 pb-28 items-center '>
@@ -37,8 +81,8 @@ const CollectionsList = ({ navigation }) => {
 
                 </TouchableOpacity>
                 {
-                    collections.map((collection) => {
-                        return <Collection key={collection.id} data={collection} navigation={navigation} />
+                    collections?.slice().reverse().map((collection, id) => {
+                        return <Collection key={id} data={collection} navigation={navigation} />
                     })
                 }
 

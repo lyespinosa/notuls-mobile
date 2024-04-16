@@ -1,158 +1,91 @@
 import { View, Text, TouchableOpacity, Image } from 'react-native'
-import React from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { ScrollView } from 'react-native-gesture-handler'
 import Texto from '../../components/Texto'
-
-import shirt1 from '../../images/shirt2.png'
-import shirt2 from '../../images/shirt3.png'
-import shirt3 from '../../images/shirt4.png'
+import { BottomSheet } from 'react-native-sheet'
+import Button from '../../components/form/Button'
+import Week from '../../components/Week'
+import useAppContext from '../../context/appContext'
+import { createNewWeekRequest, getWeeksRequest } from '../../service/public.service'
+import Input from '../../components/form/Input'
 
 const Compras = () => {
+
+    const { currentCollectionId } = useAppContext()
+
+    const [weeks, setWeeks] = useState(null)
+
+
+    const [newWeek, setNewWeek] = useState({
+        collectionId: currentCollectionId,
+        name: '',
+    });
+
+    const handleChange = (key, value) => {
+        setNewWeek(prevState => ({
+            ...prevState,
+            [key]: value
+        }));
+    }
+
+    const bottomSheet = useRef(null);
+
+    useEffect(() => {
+        const getWeeks = async () => {
+            const weeks = await getWeeksRequest(currentCollectionId);
+            setWeeks(weeks)
+        }
+        getWeeks()
+    }, [])
+
+
+    const handleSubmit = async () => {
+        if (newWeek.name.trim() !== '') {
+            try {
+                await createNewWeekRequest(newWeek);
+                const weeksUpdated = await getWeeksRequest(currentCollectionId);
+                setWeeks(weeksUpdated);
+                setNewWeek({
+                    collectionId: currentCollectionId,
+                    name: '',
+                });
+                bottomSheet.current.hide();
+
+            } catch (error) {
+                alert('Error al guardar, intente más tarde')
+            }
+        } else {
+            bottomSheet.current.hide();
+        }
+    }
+
+
     return (
         <View className='bg-base-deep flex-1  items-center '>
 
-            <View className=' w-[100%] px-2  overflow-hidden mb-10 border-b-2 pb-2 border-base-semilight '>
+            <BottomSheet
+                height={700} ref={bottomSheet}
+                contentContainerStyle={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 20, gap: 15 }}
+                backdropBackgroundColor='#000a' sheetStyle={{ backgroundColor: '#1F2228' }}
+            >
+                <Texto className='text-2xl font-semibold  text-zinc-400'>Nombre de la nueva semana</Texto>
+                <Input className='w-72' onChange={value => handleChange('name', value)} value={newWeek.name} />
+                <Button onPress={handleSubmit} text='Crear semana' className='w-[330px]' />
 
-                <ScrollView horizontal={true} className='w-full pl-2  py-4 '>
-                    <View className='bg-base-semideep w-28 h-24 rounded-lg border-2 border-base-semilight my-auto p-2 mr-2  '  >
-                        <Texto className=''>Nota 1</Texto>
-                    </View>
 
-                    <View className='bg-base-semideep w-28 h-24 rounded-lg border-2 border-base-semilight my-auto p-2 mr-2  '  >
-                        <Texto className=''>Nota 1</Texto>
-                    </View>
+            </BottomSheet>
 
-                    <View className='bg-base-semideep w-28 h-24 rounded-lg border-2 border-base-semilight my-auto p-2 mr-2  '  >
-                        <Texto className=''>Nota 1</Texto>
-                    </View>
 
-                    <View className='bg-base-semideep w-28 h-24 rounded-lg border-2 border-base-semilight my-auto p-2 mr-2  '  >
-                        <Texto className=''>Nota 1</Texto>
-                    </View>
-
-                    <View className='bg-base-semideep w-28 h-24 rounded-lg border-2 border-base-semilight my-auto p-2 mr-2  '  >
-                        <Texto className=''>Nota 1</Texto>
-                    </View>
-                </ScrollView>
-                <View className='flex-row justify-between items-end pl-4 pr-10 '>
-                    <Texto className='text-lg text-white font-bold'>Notas de compra</Texto>
-
-                </View>
-            </View>
+            <TouchableOpacity onPress={() => bottomSheet.current.show()} className='w-64 py-3 my-10 border-2 border-dashed  border-base-light bg-base-normal rounded-xl flex-row justify-center items-center' >
+                <Texto className='text-base font-bold   text-center'>Agregar nueva semana</Texto>
+            </TouchableOpacity>
 
             <ScrollView className='w-full'>
-
-                <View className='w-[95%] mx-auto h-48 bg-base-semideep rounded-lg border-2 border-primary-normal mb-6 p-4 '>
-                    <View className='flex-row justify-between items-end'>
-                        <Texto className='text-xl font-bold '>Semana 3 de Febrero</Texto>
-                        <Texto className='text-base-light text-base font-semibold'>Abrir semana </Texto>
-                    </View>
-
-                    <View className='bg-base-semideep w-full h-24 rounded-lg border-2 border-base-semilight my-auto mr-2 overflow-hidden'  >
-                        <View className='flex-row border-b-2 border-base-semilight'>
-                            <TouchableOpacity className=' items-center justify-center border-r-2 border-base-normal h-12 w-[36%]'>
-                                <Texto className='text-sm border-base-semilight px-1 font-semibold text-center'>24 elementos ...</Texto>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex-row items-center justify-center border-r-2 border-base-normal h-12 w-[32%]'>
-                                <Image source={shirt1} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt2} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt3} className='h-6 w-6 rounded-full' />
-                            </TouchableOpacity>
-                            <TouchableOpacity className='items-center justify-center h-12 w-[32%] '>
-                                <Texto className='text-base font-bold text-emerald-600 text-center w-28 px-2'>Total $530</Texto>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity className='flex-row border-base-semilight flex-1 bg-primary-deep justify-center items-center'>
-                            <Texto className='text-xl font-bold  text-center  px-2'>Expandir lista</Texto>
-
-                        </TouchableOpacity>
-                    </View>
-
-                </View>
-
-                <View className='w-[95%] mx-auto h-48 bg-base-semideep rounded-lg border-2 border-primary-normal mb-6 p-4 '>
-                    <View className='flex-row justify-between items-end'>
-                        <Texto className='text-xl font-bold '>Semana 2 de Febrero</Texto>
-                        <Texto className='text-base-light text-base font-semibold'>Abrir semana </Texto>
-                    </View>
-
-                    <View className='bg-base-semideep w-full h-24 rounded-lg border-2 border-base-semilight my-auto mr-2 overflow-hidden'  >
-                        <View className='flex-row border-b-2 border-base-semilight'>
-                            <TouchableOpacity className=' items-center justify-center border-r-2 border-base-normal h-12 w-[36%]'>
-                                <Texto className='text-sm border-base-semilight px-1 font-semibold text-center'>24 elementos ...</Texto>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex-row items-center justify-center border-r-2 border-base-normal h-12 w-[32%]'>
-                                <Image source={shirt1} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt2} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt3} className='h-6 w-6 rounded-full' />
-                            </TouchableOpacity>
-                            <TouchableOpacity className='items-center justify-center h-12 w-[32%] '>
-                                <Texto className='text-base font-bold text-emerald-600 text-center w-28 px-2'>Total $530</Texto>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity className='flex-row border-base-semilight flex-1 bg-primary-deep justify-center items-center'>
-                            <Texto className='text-xl font-bold  text-center  px-2'>Expandir lista</Texto>
-
-                        </TouchableOpacity>
-                    </View>
-
-                </View>
-
-                <View className='w-[95%] mx-auto h-48 bg-base-semideep rounded-lg border-2 border-primary-normal mb-6 p-4 '>
-                    <View className='flex-row justify-between items-end'>
-                        <Texto className='text-xl font-bold '>Semana 1 de Febrero</Texto>
-                        <Texto className='text-base-light text-base font-semibold'>Abrir semana </Texto>
-                    </View>
-
-                    <View className='bg-base-semideep w-full h-24 rounded-lg border-2 border-base-semilight my-auto mr-2 overflow-hidden'  >
-                        <View className='flex-row border-b-2 border-base-semilight'>
-                            <TouchableOpacity className=' items-center justify-center border-r-2 border-base-normal h-12 w-[36%]'>
-                                <Texto className='text-sm border-base-semilight px-1 font-semibold text-center'>24 elementos ...</Texto>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex-row items-center justify-center border-r-2 border-base-normal h-12 w-[32%]'>
-                                <Image source={shirt1} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt2} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt3} className='h-6 w-6 rounded-full' />
-                            </TouchableOpacity>
-                            <TouchableOpacity className='items-center justify-center h-12 w-[32%] '>
-                                <Texto className='text-base font-bold text-emerald-600 text-center w-28 px-2'>Total $530</Texto>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity className='flex-row border-base-semilight flex-1 bg-primary-deep justify-center items-center'>
-                            <Texto className='text-xl font-bold  text-center  px-2'>Expandir lista</Texto>
-
-                        </TouchableOpacity>
-                    </View>
-
-                </View>
-
-                <View className='w-[95%] mx-auto h-48 bg-base-semideep rounded-lg border-2 border-primary-normal mb-6 p-4 '>
-                    <View className='flex-row justify-between items-end'>
-                        <Texto className='text-xl font-bold '>Semana 4 de Enero</Texto>
-                        <Texto className='text-base-light text-base font-semibold'>Abrir semana </Texto>
-                    </View>
-
-                    <View className='bg-base-semideep w-full h-24 rounded-lg border-2 border-base-semilight my-auto mr-2 overflow-hidden'  >
-                        <View className='flex-row border-b-2 border-base-semilight'>
-                            <TouchableOpacity className=' items-center justify-center border-r-2 border-base-normal h-12 w-[36%]'>
-                                <Texto className='text-sm border-base-semilight px-1 font-semibold text-center'>24 elementos ...</Texto>
-                            </TouchableOpacity>
-                            <TouchableOpacity className='flex-row items-center justify-center border-r-2 border-base-normal h-12 w-[32%]'>
-                                <Image source={shirt1} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt2} className='h-6 w-6 rounded-full' />
-                                <Image source={shirt3} className='h-6 w-6 rounded-full' />
-                            </TouchableOpacity>
-                            <TouchableOpacity className='items-center justify-center h-12 w-[32%] '>
-                                <Texto className='text-base font-bold text-emerald-600 text-center w-28 px-2'>Total $530</Texto>
-                            </TouchableOpacity>
-                        </View>
-                        <TouchableOpacity className='flex-row border-base-semilight flex-1 bg-primary-deep justify-center items-center'>
-                            <Texto className='text-xl font-bold  text-center  px-2'>Expandir lista</Texto>
-
-                        </TouchableOpacity>
-                    </View>
-
-                </View>
+                {
+                    weeks?.slice().reverse().map((week) => {
+                        return <Week key={week.id} name={week.name} />
+                    })
+                }
 
 
             </ScrollView>

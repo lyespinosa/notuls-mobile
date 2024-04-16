@@ -1,15 +1,17 @@
-import { View, TouchableOpacity, ScrollView } from 'react-native'
+import { View, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native'
 import React, { useEffect, useReducer, useRef, useState } from 'react'
 import Texto from '../../../components/Texto'
 import Note from '../../../components/Note'
 import { BottomSheet } from 'react-native-sheet';
 import Button from '../../../components/form/Button';
 import InputArea from '../../../components/form/InputArea';
-import { createNewNoteRequest } from '../../../service/public.service';
+import { createNewNoteRequest, deleteNoteRequest, getNotesRequest, updateNoteRequest } from '../../../service/public.service';
+import { set } from 'react-hook-form';
 
 export default function NotasFijadas({ notas, setNotas }) {
 
     const bottomSheet = useRef(null);
+    const bottomSheetUpdate = useRef(null);
 
     const [newNote, setNewNote] = useState({
         title: '',
@@ -18,6 +20,15 @@ export default function NotasFijadas({ notas, setNotas }) {
         userId: 1
     });
 
+    const [noteSaved, setNoteSaved] = useState({
+        id: null,
+        title: '',
+        description: '',
+        pinned: false,
+        userId: 1
+    });
+
+
     const handleChange = (key, value) => {
         setNewNote(prevState => ({
             ...prevState,
@@ -25,11 +36,62 @@ export default function NotasFijadas({ notas, setNotas }) {
         }));
     };
 
+    const handleChangeUpdate = (key, value) => {
+        setNoteSaved(prevState => ({
+            ...prevState,
+            [key]: value
+        }));
+    }
+
+    const handleUpdate = async () => {
+        if (notas.filter(nota => nota.description !== noteSaved.description).length > 0) {
+            try {
+                await updateNoteRequest(noteSaved)
+                const notesUpdated = await getNotesRequest();
+                setNotas(notesUpdated);
+                bottomSheetUpdate.current.hide()
+            } catch (error) {
+                alert('Error al actualizar la nota')
+            }
+        } else {
+            bottomSheetUpdate.current.hide()
+        }
+    }
+
+    const handleDelete = async () => {
+        Alert.alert(
+            '¿Estas seguro de borrar esta nota?',
+            '',
+            [
+                {
+                    text: 'Cancelar',
+                    onPress: () => { return null },
+                    style: 'cancel',
+                },
+                {
+                    text: 'Borrar',
+                    onPress: async () => {
+                        try {
+                            await deleteNoteRequest(noteSaved.id)
+                            const notesUpdated = await getNotesRequest();
+                            setNotas(notesUpdated);
+                            bottomSheetUpdate.current.hide()
+                        } catch (error) {
+                            alert('Error al borrar la nota')
+                        }
+                    },
+                },
+            ],
+            { cancelable: Platform.OS === 'ios' ? true : false }
+        );
+    }
+
     const handleSubmmit = async () => {
         if (newNote.description.trim() !== '') {
             try {
                 await createNewNoteRequest(newNote);
-                setNotas(prevNotas => [...prevNotas, newNote]);
+                const notesUpdated = await getNotesRequest();
+                setNotas(notesUpdated);
                 setNewNote({
                     title: '',
                     description: '',
@@ -37,7 +99,7 @@ export default function NotasFijadas({ notas, setNotas }) {
                     userId: 1
                 });
                 bottomSheet.current.hide();
-                
+
             } catch (error) {
                 alert('Error al guardar, intente más tarde')
             }
@@ -59,8 +121,15 @@ export default function NotasFijadas({ notas, setNotas }) {
             </TouchableOpacity>
             <ScrollView horizontal={true} className='w-full '>
                 {
-                    notas?.map((nota, id) => {
-                        return <Note key={id} text={nota.description} />
+                    notas?.slice().reverse().map((nota) => {
+                        return <Note
+                            onPress={() => {
+                                bottomSheetUpdate.current.show()
+                                setNoteSaved(nota)
+                            }}
+                            key={nota?.id}
+                            text={nota.description}
+                        />
                     })
                 }
             </ScrollView>
@@ -72,7 +141,19 @@ export default function NotasFijadas({ notas, setNotas }) {
             >
                 <Texto className='text-2xl font-semibold  text-zinc-400'>Agregar nueva nota</Texto>
                 <InputArea onChange={value => handleChange('description', value)} value={newNote.description} className='px-3' />
-                <Button onPress={handleSubmmit} text='Crear colección' className='w-[330px]' />
+                <Button onPress={handleSubmmit} text='Crear nota' className='w-[330px]' />
+            </BottomSheet>
+
+            <BottomSheet
+                height={700} ref={bottomSheetUpdate}
+                contentContainerStyle={{ flexDirection: 'column', justifyContent: 'flex-start', alignItems: 'center', paddingTop: 20, gap: 15 }}
+                backdropBackgroundColor='#000a' sheetStyle={{ backgroundColor: '#1F2228' }}
+            >
+                <InputArea onChange={value => handleChangeUpdate('description', value)} value={noteSaved.description} className='px-3' />
+                <Button onPress={handleUpdate} text='Guardar' className='w-[330px]' />
+                <Button onPress={handleDelete} text='Borrar nota' className='w-[330px] mt-16 bg-red-500' />
+
+
             </BottomSheet>
         </View>
     )

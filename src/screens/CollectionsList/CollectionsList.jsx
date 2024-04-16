@@ -15,6 +15,7 @@ import { createNewCollectionRequest, getCollectionsRequest } from '../../service
 
 const CollectionsList = ({ navigation }) => {
 
+
     const [collections, setCollections] = useState([])
 
     useEffect(() => {

@@ -12,10 +12,14 @@ const InputArea = ({
     ...props
 }) => {
     return (
-        <View className='w-full' style={style}> 
+        <View className='w-full' style={style}>
             {label && <Text style={{ paddingHorizontal: 10, paddingBottom: 5 }}>{label}</Text>}
             <TextInput
+
                 {...props}
+                autoFocus={true}
+                selectTextOnFocus={false}
+                scrollEnabled={true}
                 className=' bg-base-semideep border-2 border-[#5b5b5b] text-white'
                 multiline={true}
                 numberOfLines={4}
@@ -28,7 +32,7 @@ const InputArea = ({
                     paddingHorizontal: 10,
                     paddingVertical: 8,
                     fontSize: 16,
-                    minHeight: 180 
+                    minHeight: 180
                 }}
             />
         </View>
